@@ -74,5 +74,5 @@ OCR                 | DuOCR            | 新版 OCR 不支持旧架构
 
 提示： 如果你的 Web UI 无法直接修改模型，可以通过 psql 修改 immich 数据库中的 system_config 表，或使用immich提供的API接口进行修改
 
-### 🤝 贡献与免责声明
+## 🤝 贡献与免责声明
 本项目仅为社区解决老硬件兼容性提供的一个 Workaround。随 Immich 官方版本的迭代，代码可能会产生变化，如遇构建失败请提交 Issue 或使用ChatGPT等工具自行修改。
