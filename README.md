@@ -31,7 +31,47 @@
 
 ```bash
 docker build --no-cache -t immich-ml-legacy:latest .
+```
 
 ### 2. 修改 docker-compose.yml
 
-打开你的 Immich docker-compose.yml 文件，将官方的机器学习镜像替换为刚刚构建的本地镜像，并务必添加针对小显卡的资源限制。
+打开你的 Immich docker-compose.yml 文件，将官方的机器学习镜像替换为刚刚构建的本地镜像，并务必添加针对小显存显卡的资源限制。
+Docker-Compose机器学习部分
+```
+immich-machine-learning:
+    container_name: immich_machine_learning
+    image: immich-ml-legacy:latest  # 使用我们刚刚构建的镜像
+    volumes:
+      - model-cache:/cache
+    env_file:
+      - .env
+    environment:
+      # --- 2GB 显卡显存优化 ---
+      - MACHINE_LEARNING_WORKERS=1             # 禁止多线程
+      - MACHINE_LEARNING_MAX_JOBS_PER_WORKER=1 # 每次只处理1个任务
+      - MACHINE_LEARNING_MODEL_TTL=10          # 激进的显存释放策略 (10秒不用卸载)
+      - MACHINE_LEARNING_ANN_FP16_TURBO=false  # 老架构跑半精度容易出问题，建议关闭
+      - DEVICE=cuda
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: always
+```
+
+### 3. 在 Web UI 中更换兼容模型（至关重要！）
+
+老显卡不仅驱动旧，通常显存也很小（2GB）。必须在 Immich 网页端 (Administration -> Settings -> Machine Learning Settings) 中更换为小巧且兼容的模型，否则会报 CUBLAS_STATUS_ALLOC_FAILED (显存溢出) 错误。
+
+建议使用以下配置组合
+Smart Search (CLIP) | ViT-B-32__openai | 兼容旧版 ONNX，且显存占用小 ~400MB
+Facial Recognition  | buffalo_s        | Small 版本，比默认的 buffalo_l 节省显存
+OCR                 | DuOCR            | 新版 OCR 不支持旧架构
+
+提示： 如果你的 Web UI 无法直接修改模型，可以通过 psql 修改 immich 数据库中的 system_config 表，或使用immich提供的API接口进行修改
+
+### 🤝 贡献与免责声明
+本项目仅为社区解决老硬件兼容性提供的一个 Workaround。随 Immich 官方版本的迭代，代码可能会产生变化，如遇构建失败请提交 Issue 或使用ChatGPT等工具自行修改。
