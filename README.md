@@ -36,6 +36,7 @@ docker build --no-cache -t immich-ml-legacy:latest .
 ### 2. 修改 docker-compose.yml
 
 打开你的 Immich docker-compose.yml 文件，将官方的机器学习镜像替换为刚刚构建的本地镜像，并务必添加针对小显存显卡的资源限制。
+
 Docker-Compose机器学习部分
 ```
 immich-machine-learning:
