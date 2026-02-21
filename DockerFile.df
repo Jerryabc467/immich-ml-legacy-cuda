@@ -1,0 +1,59 @@
+# 1. 基础镜像
+FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
+
+# 配置版本
+ARG IMMICH_VERSION=v2.5.5
+
+# 2. 环境变量
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    VIRTUAL_ENV=/opt/venv \
+    PATH="/opt/venv/bin:$PATH" \
+    TRANSFORMERS_CACHE=/cache \
+    MACHINE_LEARNING_CACHE_FOLDER=/cache \
+    DEVICE=cuda
+
+WORKDIR /usr/src/app
+
+# 3. 安装 Python 3.10
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -yq --no-install-recommends \
+    software-properties-common \
+    curl git build-essential libmimalloc2.0 tini \
+    libxcb1 libgl1 libglib2.0-0 libsm6 libxext6 libxrender-dev \
+    && add-apt-repository -y ppa:deadsnakes/ppa \
+    && apt-get update \
+    && apt-get install -yq --no-install-recommends \
+       python3.10 python3.10-dev python3.10-venv python3.10-distutils \
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -s /usr/lib/x86_64-linux-gnu/libmimalloc.so.2 /usr/lib/libmimalloc.so.2
+
+# 4. 预先创建缓存目录
+RUN mkdir -p /cache && chmod 777 /cache
+
+# 5. 创建虚拟环境 (使用 Python 3.10)
+RUN python3.10 -m venv $VIRTUAL_ENV
+
+# 6. 克隆源码
+RUN git clone --depth 1 --branch ${IMMICH_VERSION} https://github.com/immich-app/immich.git /tmp/immich_source \
+    && cp -r /tmp/immich_source/machine-learning/* . \
+    && rm -rf /tmp/immich_source
+
+# 7. 破解版本限制
+# - 删除 onnxruntime/numpy 依赖行（防止自动下载新版）
+# - 将源码要求的 "3.11" 修改为 "3.10"（解决 unsatisfiable 报错）
+RUN sed -i '/onnxruntime/d' pyproject.toml && \
+    sed -i '/numpy/d' pyproject.toml && \
+    sed -i 's/3\.11/3.10/g' pyproject.toml && \
+    pip install uv && \
+    uv pip install .
+
+# 8. 降级onnxruntime，手动安装旧版本
+RUN pip install "numpy<1.24" onnxruntime-gpu==1.14.1
+
+# 9. 自检
+RUN python -c "import onnxruntime; print(f'ONNX Runtime {onnxruntime.__version__} OK')" && \
+    python -c "import numpy; print(f'NumPy version: {numpy.__version__}')"
+
+ENTRYPOINT ["tini", "--"]
+CMD ["/opt/venv/bin/python", "-m", "immich_ml"]
