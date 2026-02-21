@@ -30,7 +30,7 @@
 克隆本仓库，并在包含 `Dockerfile` 的目录下执行构建命令。由于网络原因，构建可能需要几分钟。
 
 ```bash
-docker build --no-cache -t immich-ml-legacy:latest .
+docker build --no-cache -f DockerFile.df -t immich-ml-legacy:latest .
 ```
 
 ### 2. 修改 docker-compose.yml
