@@ -68,6 +68,7 @@ immich-machine-learning:
 老显卡不仅驱动旧，通常显存也很小（2GB）。必须在 Immich 网页端 (Administration -> Settings -> Machine Learning Settings) 中更换为小巧且兼容的模型，否则会报 CUBLAS_STATUS_ALLOC_FAILED (显存溢出) 错误。
 
 建议使用以下配置组合
+
 Smart Search (CLIP) | ViT-B-32__openai | 兼容旧版 ONNX，且显存占用小 ~400MB
 
 Facial Recognition  | buffalo_s        | Small 版本，比默认的 buffalo_l 节省显存
