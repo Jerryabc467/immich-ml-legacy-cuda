@@ -69,11 +69,11 @@ immich-machine-learning:
 
 建议使用以下配置组合
 
-Smart Search (CLIP) | ViT-B-32__openai | 兼容旧版 ONNX，且显存占用小 ~400MB
-
-Facial Recognition  | buffalo_s        | Small 版本，比默认的 buffalo_l 节省显存
-
-OCR                 | DuOCR            | 新版 OCR 不支持旧架构
+| AI功能                                       | 模型             | 注释                                    |
+| :------------------------------------------- | ---------------- | --------------------------------------- |
+| Smart Search (CLIP)                          | ViT-B-32__openai | 兼容旧版 ONNX，且显存占用小 ~400MB      |
+| Facial Recognition                           | buffalo_s        | Small 版本，比默认的 buffalo_l 节省显存 |
+| OCR                                          | DuOCR系模型      | 新版 OCR 不支持旧架构                   |
 
 提示： 如果你的 Web UI 无法直接修改模型，可以通过 psql 修改 immich 数据库中的 system_config 表，或使用immich提供的API接口进行修改
 
